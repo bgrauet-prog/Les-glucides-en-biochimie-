@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glucides Interactive Studio - Fischer, Tollens & Haworth</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .svg-container { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4)); }
+        .atom-label { font-size: 13px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+        .atom-sub { font-size: 10px; font-weight: 600; fill: #64748b; }
+        .bond-line { stroke-linecap: round; stroke-linejoin: round; }
+        .cycle-fill { fill: rgba(59, 130, 246, 0.08); }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 1); }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-flask text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                        Glucides Studio Pro
+                    </h1>
+                    <p class="text-xs text-slate-400">Projections de Fischer, Tollens & Haworth (3C à 6C)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-[10px]"></i> Stéréocentres Fixes (R/S)
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Controls Sidebar -->
+        <aside class="w-full lg:w-80 flex-shrink-0 flex flex-col gap-5">
+            
+            <!-- Sugar Selection & Category Filter Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                <h2 class="text-xs font-extrabold text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-filter"></i> Sélection de l'Ose
+                </h2>
+
+                <!-- Family Filter Buttons -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Famille :</label>
+                    <div class="grid grid-cols-3 bg-slate-800 p-1 rounded-xl border border-slate-700/80">
+                        <button id="filter-all-btn" class="fam-filter-btn px-2 py-1 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white">Tous</button>
+                        <button id="filter-aldose-btn" class="fam-filter-btn px-2 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Aldoses</button>
+                        <button id="filter-ketose-btn" class="fam-filter-btn px-2 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">Cétoses</button>
+                    </div>
+                </div>
+
+                <!-- Sugar Dropdown Selector -->
+                <div>
+                    <label for="sugar-select" class="block text-xs font-medium text-slate-400 mb-1.5">Ose spécifique :</label>
+                    <select id="sugar-select" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Carbohydrate Meta Info Card -->
+                <div id="sugar-info-box" class="p-3 bg-slate-950/60 rounded-xl border border-slate-800/80 text-xs space-y-1">
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">Type :</span>
+                        <span id="info-type" class="font-bold text-indigo-400">Aldohexose</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">Formule :</span>
+                        <span id="info-formula" class="font-mono text-amber-400">C6H12O6</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span class="text-slate-400">Cyclisation :</span>
+                        <span id="info-cyclizable" class="font-semibold text-emerald-400">Oui (Pyranose / Furanose)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conformation Controls Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                <h2 class="text-xs font-extrabold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> Paramètres Chimiques
+                </h2>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Series (D/L) -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Série :</label>
+                        <div class="grid grid-cols-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+                            <button id="serie-d-btn" class="serie-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow">D</button>
+                            <button id="serie-l-btn" class="serie-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">L</button>
+                        </div>
+                    </div>
+
+                    <!-- Anomer (alpha/beta) -->
+                    <div id="anomer-wrapper">
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">Anomère :</label>
+                        <div class="grid grid-cols-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+                            <button id="anomer-alpha-btn" class="anomer-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow">α</button>
+                            <button id="anomer-beta-btn" class="anomer-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">β</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ring Type (Pyranose / Furanose) -->
+                <div id="ring-wrapper">
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">Forme du cycle :</label>
+                    <div class="grid grid-cols-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+                        <button id="ring-pyranose-btn" class="ring-btn px-2 py-1.5 rounded-lg text-xs font-semibold transition-all bg-indigo-600 text-white shadow">Pyranose (6)</button>
+                        <button id="ring-furanose-btn" class="ring-btn px-2 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white">Furanose (5)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Absolute Configurations Display Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-atom"></i> Configurations (R / S)
+                    </h2>
+                    <span class="text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-300 font-bold px-2 py-0.5 rounded-full">Série D</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">Chaque carbone chiral a une configuration absolue fixe selon les règles Cahn-Ingold-Prelog :</p>
+                
+                <!-- Dynamic Stereocenters Container -->
+                <div id="stereocenters-container" class="space-y-2 overflow-y-auto max-h-52 lg:max-h-none pr-1 flex-1">
+                    <!-- Dynamic Rows inserted by JS -->
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Visualization Area -->
+        <section class="flex-1 flex flex-col gap-6">
+            
+            <!-- Cards Grid (3 representations) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                
+                <!-- 1. Fischer Projection -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                        <span class="text-xs font-extrabold text-amber-400 uppercase tracking-wide">1. Fischer</span>
+                        <span class="text-[11px] text-slate-400">Chaîne ouverte</span>
+                    </div>
+                    <div class="w-full flex-1 min-h-[300px] flex items-center justify-center p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                        <svg id="svg-fischer" class="w-full h-80 svg-container" viewBox="0 0 200 320"></svg>
+                    </div>
+                </div>
+
+                <!-- 2. Tollens Projection -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                        <span class="text-xs font-extrabold text-emerald-400 uppercase tracking-wide">2. Tollens</span>
+                        <span id="tollens-subtitle" class="text-[11px] text-slate-400">Pont hémiacétalique</span>
+                    </div>
+                    <div class="w-full flex-1 min-h-[300px] flex items-center justify-center p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                        <svg id="svg-tollens" class="w-full h-80 svg-container" viewBox="0 0 220 320"></svg>
+                    </div>
+                </div>
+
+                <!-- 3. Haworth Projection -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+                        <span class="text-xs font-extrabold text-blue-400 uppercase tracking-wide">3. Haworth</span>
+                        <span id="haworth-subtitle" class="text-[11px] text-slate-400">Cycle en perspective</span>
+                    </div>
+                    <div class="w-full flex-1 min-h-[300px] flex items-center justify-center p-2 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                        <svg id="svg-haworth" class="w-full h-80 svg-container" viewBox="0 0 300 240"></svg>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Educational Conversion Rules Panel -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                <h3 class="text-xs font-extrabold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+                    Règles Pédagogiques de Représentation
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <!-- Rule 1 -->
+                    <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-amber-300 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-right-left text-xs"></i> Fischer ➔ Haworth
+                            </div>
+                            <p class="text-slate-300 leading-relaxed">
+                                • Un groupe placé à <strong class="text-amber-400">Droite</strong> en Fischer se retrouve orienté vers le <strong class="text-blue-400">BAS</strong> en Haworth.<br>
+                                • Un groupe placé à <strong class="text-amber-400">Gauche</strong> en Fischer se retrouve orienté vers le <strong class="text-blue-400">HAUT</strong> en Haworth.
+                            </p>
+                        </div>
+                        <div class="mt-2 text-[10px] text-slate-400 font-semibold italic">Moyen mnémotechnique : "D-B / G-H" (Droite-Bas, Gauche-Haut)</div>
+                    </div>
+
+                    <!-- Rule 2 -->
+                    <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-emerald-300 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-globe text-xs"></i> Séries D et L
+                            </div>
+                            <p class="text-slate-300 leading-relaxed">
+                                • **Série D** : Le groupement terminal (ex: $-\text{CH}_2\text{OH}$) est dirigé vers le **HAUT** sur le cycle.<br>
+                                • **Série L** : Inversion complète de la stéréochimie, le groupement terminal est dirigé vers le **BAS**.
+                            </p>
+                        </div>
+                        <div class="mt-2 text-[10px] text-slate-400 font-semibold italic">Déterminé par l'avant-dernier carbone ($C_{n-1}$).</div>
+                    </div>
+
+                    <!-- Rule 3 -->
+                    <div class="bg-slate-800/60 p-3.5 rounded-xl border border-slate-700/60 flex flex-col justify-between">
+                        <div>
+                            <div class="font-bold text-blue-300 mb-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-nodes text-xs"></i> Anomères α et β
+                            </div>
+                            <p class="text-slate-300 leading-relaxed">
+                                • **Anomère α** : Le groupement $-\text{OH}$ anomérique est en position *trans* par rapport au groupement $-\text{CH}_2\text{OH}$ terminal (orienté vers le **BAS** en série D).<br>
+                                • **Anomère β** : Le $-\text{OH}$ anomérique est en position *cis* (orienté vers le **HAUT** en série D).
+                            </p>
+                        </div>
+                        <div class="mt-2 text-[10px] text-slate-400 font-semibold italic">Carbone anomérique = C1 (aldoses) ou C2 (cétoses).</div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JavaScript Data and Renderer Logic -->
+    <script>
+        // Database of carbohydrates with canonical D-series stereocenters
+        const SUGAR_DATABASE = {
+            // --- ALDOSES ---
+            glyceraldehyde: {
+                name: "Glycéraldéhyde",
+                type: "aldose",
+                numCarbons: 3,
+                fischerOH: { 2: 'R' },
+                configs: { 2: 'R' },
+                defaultRing: null // Cannot cyclize
+            },
+            erythrose: {
+                name: "Érythrose",
+                type: "aldose",
+                numCarbons: 4,
+                fischerOH: { 2: 'R', 3: 'R' },
+                configs: { 2: 'R', 3: 'R' },
+                defaultRing: "furanose"
+            },
+            threose: {
+                name: "Thréose",
+                type: "aldose",
+                numCarbons: 4,
+                fischerOH: { 2: 'L', 3: 'R' },
+                configs: { 2: 'S', 3: 'R' },
+                defaultRing: "furanose"
+            },
+            ribose: {
+                name: "Ribose",
+                type: "aldose",
+                numCarbons: 5,
+                fischerOH: { 2: 'R', 3: 'R', 4: 'R' },
+                configs: { 2: 'R', 3: 'R', 4: 'R' },
+                defaultRing: "furanose"
+            },
+            arabinose: {
+                name: "Arabinose",
+                type: "aldose",
+                numCarbons: 5,
+                fischerOH: { 2: 'L', 3: 'R', 4: 'R' },
+                configs: { 2: 'S', 3: 'R', 4: 'R' },
+                defaultRing: "pyranose"
+            },
+            xylose: {
+                name: "Xylose",
+                type: "aldose",
+                numCarbons: 5,
+                fischerOH: { 2: 'R', 3: 'L', 4: 'R' },
+                configs: { 2: 'R', 3: 'S', 4: 'R' },
+                defaultRing: "pyranose"
+            },
+            lyxose: {
+                name: "Lyxose",
+                type: "aldose",
+                numCarbons: 5,
+                fischerOH: { 2: 'L', 3: 'L', 4: 'R' },
+                configs: { 2: 'S', 3: 'S', 4: 'R' },
+                defaultRing: "pyranose"
+            },
+            allose: {
+                name: "Allose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'R', 3: 'R', 4: 'R', 5: 'R' },
+                configs: { 2: 'R', 3: 'R', 4: 'R', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            altrose: {
+                name: "Altrose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'L', 3: 'R', 4: 'R', 5: 'R' },
+                configs: { 2: 'S', 3: 'R', 4: 'R', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            glucose: {
+                name: "Glucose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'R', 3: 'L', 4: 'R', 5: 'R' },
+                configs: { 2: 'R', 3: 'S', 4: 'R', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            mannose: {
+                name: "Mannose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'L', 3: 'L', 4: 'R', 5: 'R' },
+                configs: { 2: 'S', 3: 'S', 4: 'R', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            gulose: {
+                name: "Gulose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'R', 3: 'R', 4: 'L', 5: 'R' },
+                configs: { 2: 'R', 3: 'R', 4: 'S', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            idose: {
+                name: "Idose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'L', 3: 'R', 4: 'L', 5: 'R' },
+                configs: { 2: 'S', 3: 'R', 4: 'S', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            galactose: {
+                name: "Galactose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'R', 3: 'L', 4: 'L', 5: 'R' },
+                configs: { 2: 'R', 3: 'S', 4: 'S', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            talose: {
+                name: "Talose",
+                type: "aldose",
+                numCarbons: 6,
+                fischerOH: { 2: 'L', 3: 'L', 4: 'L', 5: 'R' },
+                configs: { 2: 'S', 3: 'S', 4: 'S', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+
+            // --- KETOSES ---
+            erythrulose: {
+                name: "Érythrulose",
+                type: "ketose",
+                numCarbons: 4,
+                fischerOH: { 3: 'R' },
+                configs: { 3: 'R' },
+                defaultRing: "furanose"
+            },
+            ribulose: {
+                name: "Ribulose",
+                type: "ketose",
+                numCarbons: 5,
+                fischerOH: { 3: 'R', 4: 'R' },
+                configs: { 3: 'R', 4: 'R' },
+                defaultRing: "furanose"
+            },
+            xylulose: {
+                name: "Xylulose",
+                type: "ketose",
+                numCarbons: 5,
+                fischerOH: { 3: 'L', 4: 'R' },
+                configs: { 3: 'S', 4: 'R' },
+                defaultRing: "furanose"
+            },
+            psicose: {
+                name: "Psicose",
+                type: "ketose",
+                numCarbons: 6,
+                fischerOH: { 3: 'R', 4: 'R', 5: 'R' },
+                configs: { 3: 'R', 4: 'R', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            fructose: {
+                name: "Fructose",
+                type: "ketose",
+                numCarbons: 6,
+                fischerOH: { 3: 'L', 4: 'R', 5: 'R' },
+                configs: { 3: 'S', 4: 'R', 5: 'R' },
+                defaultRing: "furanose"
+            },
+            sorbose: {
+                name: "Sorbose",
+                type: "ketose",
+                numCarbons: 6,
+                fischerOH: { 3: 'L', 4: 'L', 5: 'R' },
+                configs: { 3: 'S', 4: 'S', 5: 'R' },
+                defaultRing: "pyranose"
+            },
+            tagatose: {
+                name: "Tagatose",
+                type: "ketose",
+                numCarbons: 6,
+                fischerOH: { 3: 'R', 4: 'L', 5: 'R' },
+                configs: { 3: 'R', 4: 'S', 5: 'R' },
+                defaultRing: "pyranose"
+            }
+        };
+
+        // Current Application State
+        let state = {
+            sugarKey: "glucose",
+            familyFilter: "all",  // "all", "aldose", "ketose"
+            serie: "D",           // "D" or "L"
+            anomer: "alpha",      // "alpha" or "beta"
+            ringType: "pyranose"  // "pyranose" or "furanose"
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            populateSugarDropdown();
+            setupEventListeners();
+            loadSugar("glucose");
+            render();
+        });
+
+        function populateSugarDropdown() {
+            const select = document.getElementById('sugar-select');
+            select.innerHTML = '';
+
+            let keys = Object.keys(SUGAR_DATABASE);
+
+            // Filter by family
+            if (state.familyFilter === "aldose") {
+                keys = keys.filter(k => SUGAR_DATABASE[k].type === "aldose");
+            } else if (state.familyFilter === "ketose") {
+                keys = keys.filter(k => SUGAR_DATABASE[k].type === "ketose");
+            }
+
+            // Group by carbon count
+            const groups = { 3: "Trioses (3C)", 4: "Tétroses (4C)", 5: "Pentoses (5C)", 6: "Hexoses (6C)" };
+
+            Object.keys(groups).forEach(cCount => {
+                const count = parseInt(cCount);
+                const items = keys.filter(k => SUGAR_DATABASE[k].numCarbons === count);
+                if (items.length > 0) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = groups[cCount];
+                    items.forEach(k => {
+                        const opt = document.createElement('option');
+                        opt.value = k;
+                        opt.textContent = `D-${SUGAR_DATABASE[k].name} (${SUGAR_DATABASE[k].type === 'aldose' ? 'Aldo' : 'Céto'})`;
+                        if (k === state.sugarKey) opt.selected = true;
+                        optgroup.appendChild(opt);
+                    });
+                    select.appendChild(optgroup);
+                }
+            });
+
+            // Fallback if current key not in filtered list
+            if (!keys.includes(state.sugarKey) && keys.length > 0) {
+                state.sugarKey = keys[0];
+                select.value = keys[0];
+            }
+        }
+
+        function loadSugar(key) {
+            state.sugarKey = key;
+            const sugar = SUGAR_DATABASE[key];
+
+            // Set default ring type if supported
+            if (sugar.defaultRing) {
+                state.ringType = sugar.defaultRing;
+            }
+
+            // Update UI visibility for non-cyclizing sugars
+            const isCyclizable = sugar.numCarbons >= 4;
+            document.getElementById('ring-wrapper').style.display = isCyclizable ? 'block' : 'none';
+            document.getElementById('anomer-wrapper').style.display = isCyclizable ? 'block' : 'none';
+
+            // Disable pyranose for 4C sugars
+            const pyranoseBtn = document.getElementById('ring-pyranose-btn');
+            if (sugar.numCarbons < 5) {
+                pyranoseBtn.disabled = true;
+                pyranoseBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                state.ringType = 'furanose';
+            } else {
+                pyranoseBtn.disabled = false;
+                pyranoseBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+
+            updateInfoBox(sugar);
+            updateControlButtons();
+            renderStereocentersList(sugar);
+        }
+
+        function updateInfoBox(sugar) {
+            const typeLabel = (sugar.type === 'aldose' ? 'Aldo' : 'Céto') + 
+                (sugar.numCarbons === 3 ? 'triose' : sugar.numCarbons === 4 ? 'tétrose' : sugar.numCarbons === 5 ? 'pentose' : 'hexose');
+            
+            document.getElementById('info-type').textContent = typeLabel;
+            document.getElementById('info-formula').textContent = `C${sugar.numCarbons}H${sugar.numCarbons * 2}O${sugar.numCarbons}`;
+            
+            const cyclizableSpan = document.getElementById('info-cyclizable');
+            if (sugar.numCarbons < 4) {
+                cyclizableSpan.textContent = "Non (Trop court)";
+                cyclizableSpan.className = "font-semibold text-rose-400";
+            } else {
+                cyclizableSpan.textContent = sugar.numCarbons === 4 ? "Oui (Furanose)" : "Oui (Pyranose / Furanose)";
+                cyclizableSpan.className = "font-semibold text-emerald-400";
+            }
+        }
+
+        function updateControlButtons() {
+            // Series
+            const dBtn = document.getElementById('serie-d-btn');
+            const lBtn = document.getElementById('serie-l-btn');
+            dBtn.className = `serie-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${state.serie === 'D' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
+            lBtn.className = `serie-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${state.serie === 'L' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
+
+            // Anomer
+            const aBtn = document.getElementById('anomer-alpha-btn');
+            const bBtn = document.getElementById('anomer-beta-btn');
+            aBtn.className = `anomer-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${state.anomer === 'alpha' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
+            bBtn.className = `anomer-btn px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${state.anomer === 'beta' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
+
+            // Ring
+            const pyrBtn = document.getElementById('ring-pyranose-btn');
+            const furBtn = document.getElementById('ring-furanose-btn');
+            pyrBtn.className = `ring-btn px-2 py-1.5 rounded-lg text-xs font-semibold transition-all ${state.ringType === 'pyranose' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
+            furBtn.className = `ring-btn px-2 py-1.5 rounded-lg text-xs font-semibold transition-all ${state.ringType === 'furanose' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
+        }
+
+        function renderStereocentersList(sugar) {
+            const container = document.getElementById('stereocenters-container');
+            container.innerHTML = '';
+
+            const keys = Object.keys(sugar.configs).map(Number);
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-500 italic p-2">Aucun carbone chiral</div>';
+                return;
+            }
+
+            keys.forEach(c => {
+                let baseConfig = sugar.configs[c];
+                // Invert R/S for L-series
+                let currentConfig = baseConfig;
+                if (state.serie === 'L') {
+                    currentConfig = (baseConfig === 'R') ? 'S' : 'R';
+                }
+
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs";
+                row.innerHTML = `
+                    <span class="font-semibold text-slate-300">Carbone C${c} :</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] text-slate-400">Position OH : <strong class="text-slate-200">${getFischerOHSide(sugar, c)}</strong></span>
+                        <span class="px-2 py-0.5 rounded-md font-bold text-[11px] ${currentConfig === 'R' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'}">
+                            (${currentConfig})
+                        </span>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function setupEventListeners() {
+            // Family Filters
+            document.getElementById('filter-all-btn').addEventListener('click', () => setFamilyFilter('all'));
+            document.getElementById('filter-aldose-btn').addEventListener('click', () => setFamilyFilter('aldose'));
+            document.getElementById('filter-ketose-btn').addEventListener('click', () => setFamilyFilter('ketose'));
+
+            // Dropdown
+            document.getElementById('sugar-select').addEventListener('change', (e) => {
+                loadSugar(e.target.value);
+                render();
+            });
+
+            // Series
+            document.getElementById('serie-d-btn').addEventListener('click', () => { state.serie = 'D'; updateControlButtons(); renderStereocentersList(SUGAR_DATABASE[state.sugarKey]); render(); });
+            document.getElementById('serie-l-btn').addEventListener('click', () => { state.serie = 'L'; updateControlButtons(); renderStereocentersList(SUGAR_DATABASE[state.sugarKey]); render(); });
+
+            // Anomer
+            document.getElementById('anomer-alpha-btn').addEventListener('click', () => { state.anomer = 'alpha'; updateControlButtons(); render(); });
+            document.getElementById('anomer-beta-btn').addEventListener('click', () => { state.anomer = 'beta'; updateControlButtons(); render(); });
+
+            // Ring
+            document.getElementById('ring-pyranose-btn').addEventListener('click', () => { if (SUGAR_DATABASE[state.sugarKey].numCarbons >= 5) { state.ringType = 'pyranose'; updateControlButtons(); render(); } });
+            document.getElementById('ring-furanose-btn').addEventListener('click', () => { state.ringType = 'furanose'; updateControlButtons(); render(); });
+        }
+
+        function setFamilyFilter(fam) {
+            state.familyFilter = fam;
+            document.getElementById('filter-all-btn').className = `fam-filter-btn px-2 py-1 rounded-lg text-xs font-bold transition-all ${fam === 'all' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`;
+            document.getElementById('filter-aldose-btn').className = `fam-filter-btn px-2 py-1 rounded-lg text-xs font-bold transition-all ${fam === 'aldose' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`;
+            document.getElementById('filter-ketose-btn').className = `fam-filter-btn px-2 py-1 rounded-lg text-xs font-bold transition-all ${fam === 'ketose' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`;
+            
+            populateSugarDropdown();
+            loadSugar(state.sugarKey);
+            render();
+        }
+
+        // Helper: Get 'R' (Right) or 'L' (Left) for Fischer OH in current Series
+        function getFischerOHSide(sugar, carbonIndex) {
+            const dSide = sugar.fischerOH[carbonIndex] || 'R';
+            if (state.serie === 'L') {
+                return dSide === 'R' ? 'L' : 'R';
+            }
+            return dSide;
+        }
+
+        // Helper: Get cyclizing carbon index based on ring type and sugar
+        function getCyclizingCarbon(sugar) {
+            const anomericC = (sugar.type === 'aldose') ? 1 : 2;
+            let targetOffset = (state.ringType === 'pyranose') ? 5 : 4;
+            let cyclizingC = anomericC + targetOffset - 1;
+
+            if (cyclizingC >= sugar.numCarbons) {
+                cyclizingC = sugar.numCarbons - 1;
+            }
+            return cyclizingC;
+        }
+
+        // --- RENDER ROUTINES ---
+        function render() {
+            const sugar = SUGAR_DATABASE[state.sugarKey];
+            renderFischer(sugar);
+            renderTollens(sugar);
+            renderHaworth(sugar);
+        }
+
+        function renderFischer(sugar) {
+            const svg = document.getElementById('svg-fischer');
+            svg.innerHTML = '';
+
+            const n = sugar.numCarbons;
+            const startY = 40;
+            const spacingY = 230 / (n - 1);
+            const cx = 100;
+
+            // Draw vertical backbone
+            createSvgLine(svg, cx, startY, cx, startY + (n - 1) * spacingY, "#475569", 3);
+
+            for (let i = 1; i <= n; i++) {
+                const cy = startY + (i - 1) * spacingY;
+
+                if (i === 1) {
+                    if (sugar.type === 'aldose') {
+                        createSvgText(svg, cx, cy - 10, "CHO", "#f59e0b", "atom-label");
+                    } else {
+                        createSvgText(svg, cx, cy - 10, "CH₂OH", "#f59e0b", "atom-label");
+                    }
+                } else if (i === n) {
+                    createSvgText(svg, cx, cy + 12, "CH₂OH", "#f59e0b", "atom-label");
+                } else if (sugar.type === 'ketose' && i === 2) {
+                    createSvgLine(svg, cx - 25, cy, cx + 25, cy, "#334155", 2);
+                    createSvgText(svg, cx + 38, cy, "= O", "#ef4444", "atom-label");
+                    createSvgCircle(svg, cx, cy, 4, "#ef4444");
+                    createSvgText(svg, cx - 35, cy, "C2", "#64748b", "atom-sub");
+                } else {
+                    const side = getFischerOHSide(sugar, i);
+                    const leftText = (side === 'L') ? "OH" : "H";
+                    const rightText = (side === 'R') ? "OH" : "H";
+
+                    createSvgLine(svg, cx - 40, cy, cx + 40, cy, "#334155", 2);
+                    createSvgCircle(svg, cx, cy, 4, "#3b82f6");
+
+                    createSvgText(svg, cx - 55, cy, leftText, side === 'L' ? "#ec4899" : "#94a3b8", "atom-label");
+                    createSvgText(svg, cx + 55, cy, rightText, side === 'R' ? "#ec4899" : "#94a3b8", "atom-label");
+                    createSvgText(svg, cx, cy - 8, `C${i}`, "#64748b", "atom-sub");
+                }
+            }
+        }
+
+        function renderTollens(sugar) {
+            const svg = document.getElementById('svg-tollens');
+            const subtitle = document.getElementById('tollens-subtitle');
+            svg.innerHTML = '';
+
+            if (sugar.numCarbons < 4) {
+                subtitle.textContent = "Non disponible";
+                createSvgText(svg, 110, 160, "Ose non cyclisable", "#64748b", "atom-label");
+                return;
+            }
+            subtitle.textContent = "Pont hémiacétalique";
+
+            const n = sugar.numCarbons;
+            const startY = 40;
+            const spacingY = 230 / (n - 1);
+            const cx = 85;
+
+            const cyclizingC = getCyclizingCarbon(sugar);
+            const anomericC = (sugar.type === 'aldose') ? 1 : 2;
+
+            // Vertical line
+            createSvgLine(svg, cx, startY, cx, startY + (n - 1) * spacingY, "#475569", 3);
+
+            // Oxygen bridge
+            const y1 = startY + (anomericC - 1) * spacingY;
+            const y2 = startY + (cyclizingC - 1) * spacingY;
+            const bridgeX = cx + 65;
+
+            const pathD = `M ${cx + 15} ${y1} C ${bridgeX + 25} ${y1}, ${bridgeX + 25} ${y2}, ${cx + 15} ${y2}`;
+            const bridgePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            bridgePath.setAttribute('d', pathD);
+            bridgePath.setAttribute('stroke', '#10b981');
+            bridgePath.setAttribute('stroke-width', '2.5');
+            bridgePath.setAttribute('fill', 'none');
+            bridgePath.setAttribute('stroke-dasharray', '4,2');
+            svg.appendChild(bridgePath);
+
+            // Oxygen circle
+            const midY = (y1 + y2) / 2;
+            createSvgCircle(svg, bridgeX + 12, midY, 11, "#065f46");
+            createSvgText(svg, bridgeX + 12, midY, "O", "#10b981", "atom-label");
+
+            for (let i = 1; i <= n; i++) {
+                const cy = startY + (i - 1) * spacingY;
+
+                if (i === 1) {
+                    if (sugar.type === 'aldose') {
+                        createSvgLine(svg, cx - 35, cy, cx + 15, cy, "#334155", 2);
+                        createSvgText(svg, cx - 45, cy, "H", "#94a3b8", "atom-label");
+                        createSvgCircle(svg, cx, cy, 4, "#10b981");
+
+                        const isAlpha = state.anomer === 'alpha';
+                        const ohSide = (state.serie === 'D') ? (isAlpha ? 'R' : 'L') : (isAlpha ? 'L' : 'R');
+                        createSvgText(svg, cx + (ohSide === 'R' ? 35 : -45), cy, "OH", "#10b981", "atom-label");
+                    } else {
+                        createSvgText(svg, cx, cy - 10, "CH₂OH", "#f59e0b", "atom-label");
+                    }
+                } else if (i === n) {
+                    createSvgText(svg, cx, cy + 12, "CH₂OH", "#f59e0b", "atom-label");
+                } else {
+                    const side = getFischerOHSide(sugar, i);
+                    const leftText = (side === 'L') ? "OH" : "H";
+                    const rightText = (side === 'R') ? "OH" : "H";
+
+                    createSvgLine(svg, cx - 35, cy, cx + 35, cy, "#334155", 2);
+                    createSvgCircle(svg, cx, cy, 4, i === cyclizingC ? "#10b981" : "#3b82f6");
+
+                    if (i === cyclizingC) {
+                        const hSide = side === 'L' ? 'R' : 'L';
+                        createSvgText(svg, cx + (hSide === 'R' ? 45 : -45), cy, "H", "#94a3b8", "atom-label");
+                    } else {
+                        createSvgText(svg, cx - 45, cy, leftText, side === 'L' ? "#ec4899" : "#94a3b8", "atom-label");
+                        createSvgText(svg, cx + 45, cy, rightText, side === 'R' ? "#ec4899" : "#94a3b8", "atom-label");
+                    }
+                }
+            }
+        }
+
+        function renderHaworth(sugar) {
+            const svg = document.getElementById('svg-haworth');
+            const subtitle = document.getElementById('haworth-subtitle');
+            svg.innerHTML = '';
+
+            if (sugar.numCarbons < 4) {
+                subtitle.textContent = "Non disponible";
+                createSvgText(svg, 150, 120, "Ose non cyclisable", "#64748b", "atom-label");
+                return;
+            }
+
+            const isPyranose = state.ringType === 'pyranose' && sugar.numCarbons >= 5;
+            subtitle.textContent = isPyranose ? "Pyranose (6 sommets)" : "Furanose (5 sommets)";
+
+            const cyclizingC = getCyclizingCarbon(sugar);
+            const anomericC = (sugar.type === 'aldose') ? 1 : 2;
+
+            if (isPyranose) {
+                renderPyranoseHaworth(svg, sugar, anomericC, cyclizingC);
+            } else {
+                renderFuranoseHaworth(svg, sugar, anomericC, cyclizingC);
+            }
+        }
+
+        function renderPyranoseHaworth(svg, sugar, anomericC, cyclizingC) {
+            const nodes = {
+                O: { x: 210, y: 80 },
+                C1: { x: 245, y: 125 },
+                C2: { x: 200, y: 170 },
+                C3: { x: 100, y: 170 },
+                C4: { x: 55, y: 125 },
+                C5: { x: 100, y: 80 }
+            };
+
+            const points = `${nodes.O.x},${nodes.O.y} ${nodes.C1.x},${nodes.C1.y} ${nodes.C2.x},${nodes.C2.y} ${nodes.C3.x},${nodes.C3.y} ${nodes.C4.x},${nodes.C4.y} ${nodes.C5.x},${nodes.C5.y}`;
+            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            poly.setAttribute('points', points);
+            poly.setAttribute('class', 'cycle-fill');
+            poly.setAttribute('stroke', '#3b82f6');
+            poly.setAttribute('stroke-width', '2');
+            svg.appendChild(poly);
+
+            // Front edge
+            createSvgLine(svg, nodes.C2.x, nodes.C2.y, nodes.C3.x, nodes.C3.y, "#60a5fa", 4);
+
+            // Oxygen
+            createSvgCircle(svg, nodes.O.x, nodes.O.y, 12, "#065f46");
+            createSvgText(svg, nodes.O.x, nodes.O.y, "O", "#10b981", "atom-label");
+
+            const ringCarbons = [
+                { id: 1, pos: nodes.C1 },
+                { id: 2, pos: nodes.C2 },
+                { id: 3, pos: nodes.C3 },
+                { id: 4, pos: nodes.C4 },
+                { id: 5, pos: nodes.C5 }
+            ];
+
+            ringCarbons.forEach(c => {
+                const cNum = c.id;
+                const { x, y } = c.pos;
+
+                let topGroup = "";
+                let bottomGroup = "";
+
+                if (cNum === anomericC) {
+                    const isAlpha = state.anomer === 'alpha';
+                    let ohIsDown = (state.serie === 'D') ? isAlpha : !isAlpha;
+
+                    if (sugar.type === 'ketose' && cNum === 2) {
+                        topGroup = ohIsDown ? "CH₂OH" : "OH";
+                        bottomGroup = ohIsDown ? "OH" : "CH₂OH";
+                    } else {
+                        topGroup = ohIsDown ? "H" : "OH";
+                        bottomGroup = ohIsDown ? "OH" : "H";
+                    }
+                } else if (cNum === cyclizingC) {
+                    const terminalIsUp = (state.serie === 'D');
+                    if (sugar.numCarbons === 6) {
+                        topGroup = terminalIsUp ? "CH₂OH" : "H";
+                        bottomGroup = terminalIsUp ? "H" : "CH₂OH";
+                    } else {
+                        topGroup = "H";
+                        bottomGroup = "H";
+                    }
+                } else if (cNum < cyclizingC) {
+                    const fSide = getFischerOHSide(sugar, cNum);
+                    if (fSide === 'R') {
+                        topGroup = "H";
+                        bottomGroup = "OH";
+                    } else {
+                        topGroup = "OH";
+                        bottomGroup = "H";
+                    }
+                }
+
+                const armLength = 32;
+                createSvgLine(svg, x, y - armLength, x, y + armLength, "#475569", 1.5);
+                createSvgCircle(svg, x, y, 3, "#3b82f6");
+
+                createSvgText(svg, x, y - armLength - 8, topGroup, topGroup === 'OH' ? '#ec4899' : (topGroup === 'CH₂OH' ? '#f59e0b' : '#94a3b8'), "atom-label");
+                createSvgText(svg, x, y + armLength + 8, bottomGroup, bottomGroup === 'OH' ? '#ec4899' : (bottomGroup === 'CH₂OH' ? '#f59e0b' : '#94a3b8'), "atom-label");
+                createSvgText(svg, x + 10, y + 2, `C${cNum}`, "#64748b", "atom-sub");
+            });
+        }
+
+        function renderFuranoseHaworth(svg, sugar, anomericC, cyclizingC) {
+            const nodes = {
+                O: { x: 150, y: 75 },
+                C1: { x: 220, y: 110 },
+                C2: { x: 190, y: 165 },
+                C3: { x: 110, y: 165 },
+                C4: { x: 80, y: 110 }
+            };
+
+            const points = `${nodes.O.x},${nodes.O.y} ${nodes.C1.x},${nodes.C1.y} ${nodes.C2.x},${nodes.C2.y} ${nodes.C3.x},${nodes.C3.y} ${nodes.C4.x},${nodes.C4.y}`;
+            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            poly.setAttribute('points', points);
+            poly.setAttribute('class', 'cycle-fill');
+            poly.setAttribute('stroke', '#818cf8');
+            poly.setAttribute('stroke-width', '2');
+            svg.appendChild(poly);
+
+            // Front edge
+            createSvgLine(svg, nodes.C2.x, nodes.C2.y, nodes.C3.x, nodes.C3.y, "#818cf8", 4);
+
+            // Oxygen
+            createSvgCircle(svg, nodes.O.x, nodes.O.y, 12, "#065f46");
+            createSvgText(svg, nodes.O.x, nodes.O.y, "O", "#10b981", "atom-label");
+
+            const ringCarbons = [
+                { id: (sugar.type === 'aldose' ? 1 : 2), pos: nodes.C1 },
+                { id: (sugar.type === 'aldose' ? 2 : 3), pos: nodes.C2 },
+                { id: (sugar.type === 'aldose' ? 3 : 4), pos: nodes.C3 },
+                { id: (sugar.type === 'aldose' ? 4 : 5), pos: nodes.C4 }
+            ];
+
+            ringCarbons.forEach(c => {
+                const cNum = c.id;
+                const { x, y } = c.pos;
+
+                let topGroup = "";
+                let bottomGroup = "";
+
+                if (cNum === anomericC) {
+                    const isAlpha = state.anomer === 'alpha';
+                    let ohIsDown = (state.serie === 'D') ? isAlpha : !isAlpha;
+
+                    if (sugar.type === 'ketose') {
+                        topGroup = ohIsDown ? "CH₂OH" : "OH";
+                        bottomGroup = ohIsDown ? "OH" : "CH₂OH";
+                    } else {
+                        topGroup = ohIsDown ? "H" : "OH";
+                        bottomGroup = ohIsDown ? "OH" : "H";
+                    }
+                } else if (cNum === cyclizingC) {
+                    const terminalIsUp = (state.serie === 'D');
+                    let tail = (sugar.numCarbons === 6) ? "CH(OH)CH₂OH" : "CH₂OH";
+                    topGroup = terminalIsUp ? tail : "H";
+                    bottomGroup = terminalIsUp ? "H" : tail;
+                } else {
+                    const fSide = getFischerOHSide(sugar, cNum);
+                    if (fSide === 'R') {
+                        topGroup = "H";
+                        bottomGroup = "OH";
+                    } else {
+                        topGroup = "OH";
+                        bottomGroup = "H";
+                    }
+                }
+
+                const armLength = 30;
+                createSvgLine(svg, x, y - armLength, x, y + armLength, "#475569", 1.5);
+                createSvgCircle(svg, x, y, 3, "#818cf8");
+
+                createSvgText(svg, x, y - armLength - 8, topGroup, topGroup === 'OH' ? '#ec4899' : (topGroup.includes('CH₂OH') ? '#f59e0b' : '#94a3b8'), "atom-label");
+                createSvgText(svg, x, y + armLength + 8, bottomGroup, bottomGroup === 'OH' ? '#ec4899' : (bottomGroup.includes('CH₂OH') ? '#f59e0b' : '#94a3b8'), "atom-label");
+                createSvgText(svg, x + 10, y + 2, `C${cNum}`, "#64748b", "atom-sub");
+            });
+        }
+
+        function createSvgLine(svg, x1, y1, x2, y2, color = "#fff", width = 2) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x1);
+            line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2);
+            line.setAttribute('y2', y2);
+            line.setAttribute('stroke', color);
+            line.setAttribute('stroke-width', width);
+            line.setAttribute('class', 'bond-line');
+            svg.appendChild(line);
+            return line;
+        }
+
+        function createSvgCircle(svg, cx, cy, r, fill = "#fff") {
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', cx);
+            circle.setAttribute('cy', cy);
+            circle.setAttribute('r', r);
+            circle.setAttribute('fill', fill);
+            svg.appendChild(circle);
+            return circle;
+        }
+
+        function createSvgText(svg, x, y, content, color = "#fff", className = "atom-label") {
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', x);
+            text.setAttribute('y', y);
+            text.setAttribute('fill', color);
+            text.setAttribute('class', className);
+            text.textContent = content;
+            svg.appendChild(text);
+            return text;
+        }
+    </script>
+</body>
+</html>
